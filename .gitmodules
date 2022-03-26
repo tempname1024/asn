@@ -1,0 +1,4 @@
+[submodule "location-database"]
+	path = location-database
+	url = git://git.ipfire.org/location/location-database.git
+    ignore = all

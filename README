@@ -1,0 +1,33 @@
+asn: map hosts to their corresponding ASN via WHOIS
+
+usage: asn.py [-h] [--host HOST] [--port PORT] [--ipv6] [--update] [--populate]
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --host HOST  IP address to listen on
+  --port PORT  Port to listen on
+  --ipv6       Support queries for IPv6 hosts
+  --update     Update dataset submodule and create/populate cache
+  --populate   Create and populate cache from current dataset
+
+INSTALL
+
+  $ git submodule init
+  $ git submodule update --recursive --remote
+
+  $ doas apk add py3-gitpython (Alpine)
+  $ ./asn.py --populate
+  $ ./asn.py --host 0.0.0.0 --port 4343
+
+optional: forward traffic destined for port 43 (WHOIS default) back to 4343
+
+  $ iptables -A PREROUTING -t nat -p tcp --dport 43 -j REDIRECT --to-ports 4343
+
+USAGE
+
+  $ whois -h whois.jordan.im 1.1.1.1
+  AS13335 AU CLOUDFLARENET 1.1.1.0/24
+
+  $ whois -h whois.jordan.im jordan.im
+  AS8943 GB Jump Networks Ltd 185.73.44.0/22
+  AS8943 GB Jump Networks Ltd 2001:ba8::/32
