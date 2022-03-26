@@ -1,12 +1,11 @@
 asn: map hosts to their corresponding ASN via WHOIS
 
-usage: asn.py [-h] [--host HOST] [--port PORT] [--ipv6] [--update] [--populate]
+usage: asn.py [-h] [--host HOST] [--port PORT] [--update] [--populate]
 
 optional arguments:
   -h, --help   show this help message and exit
   --host HOST  IP address to listen on
   --port PORT  Port to listen on
-  --ipv6       Support queries for IPv6 hosts
   --update     Update dataset submodule and create/populate cache
   --populate   Create and populate cache from current dataset
 

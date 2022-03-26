@@ -17,8 +17,7 @@ log = logging.getLogger('asn')
 log.setLevel(logging.DEBUG)
 
 class Listener:
-    def __init__(self, host, port, ipv6_enabled=False):
-        self.ipv6_enabled = ipv6_enabled
+    def __init__(self, host, port):
         self._listen(host, port)
 
     def _listen(self, host, port):
@@ -102,10 +101,7 @@ class Listener:
         if net.version == 4:
             net = net.supernet(new_prefix=24)
         elif net.version == 6:
-            if self.ipv6_enabled:
-                net = net.supernet(new_prefix=64)
-            else:
-                return None
+            net = net.supernet(new_prefix=64)
 
         return net
 
@@ -140,6 +136,9 @@ class DB:
                     country TEXT,
                     FOREIGN KEY(aut_num) REFERENCES asn(aut_num)
                 )
+            ''')
+            self.con.execute('''
+                CREATE UNIQUE INDEX idx_net ON net(net)
             ''')
             self.con.execute('PRAGMA foreign_keys=ON')
 
@@ -230,9 +229,6 @@ if __name__ == '__main__':
     parser.add_argument('--port', dest='port', type=int, action='store',
                         help='Port to listen on',
                         required=False)
-    parser.add_argument('--ipv6', dest='ipv6_enabled', action='store_true',
-                        help='Support queries for IPv6 hosts',
-                        required=False)
     parser.add_argument('--update', dest='update', action='store_true',
                         help='Update dataset submodule and create/populate cache',
                         required=False)
@@ -242,7 +238,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.host and args.port:
-        listen = Listener(args.host, args.port, args.ipv6_enabled)
+        listen = Listener(args.host, args.port)
     elif args.update:
         db = DB()
         log.info('checking remote repository for new dataset...')
