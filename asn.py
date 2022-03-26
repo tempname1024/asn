@@ -39,10 +39,10 @@ class Listener:
         log.info(f'{addr[0]} {recv_data}')
 
         announcements = self._get_announcements(recv_data)
-        announcements = self._pretty(announcements)
-
-        if not announcements.strip():
+        if not announcements:
             announcements = 'no valid hostname or IP discovered'
+        else:
+            announcements = self._pretty(announcements)
 
         conn.sendall(bytes(announcements, 'utf-8'))
         conn.shutdown(socket.SHUT_RDWR)
@@ -71,12 +71,26 @@ class Listener:
 
             return announcements
 
-    def _pretty(self, announcements):
-        out = []
-        for x in announcements:
-            out.append(' '.join(('AS'+str(x[0]), x[1], x[2], x[3])))
+    def _pretty(self, announces):
+        announces = sorted(announces, key=lambda x: ipaddress.ip_network(
+            x[3]).version)
 
-        return '\n'.join(out) + '\n'
+        head = ('AS Number', 'Country', 'AS Name', 'Announcement')
+        announces.insert(0, head)
+        w = [len(max(i, key=lambda x: len(str(x)))) for i in zip(*announces)]
+
+        out = ''
+        header, data = announces[0], announces[1:]
+        out += ' | '.join(format(title,
+            "%ds" % width) for width, title in zip(w, header))
+        out += '\n' + '-+-'.join( '-' * width for width in w ) + '\n'
+
+        for row in data:
+            out += " | ".join(format(str(cdata),
+                "%ds" % width) for width, cdata in zip(w, row))
+            out += '\n'
+
+        return out
 
     def _resolve(self, hostname):
         info = socket.getaddrinfo(hostname, 80, proto=socket.IPPROTO_TCP)

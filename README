@@ -25,8 +25,14 @@ optional: forward traffic destined for port 43 (WHOIS default) back to 4343
 USAGE
 
   $ whois -h whois.jordan.im 1.1.1.1
-  AS13335 AU CLOUDFLARENET 1.1.1.0/24
+
+  AS Number | Country | AS Name       | Announcement
+  ----------+---------+---------------+-------------
+  13335     | AU      | CLOUDFLARENET | 1.1.1.0/24
 
   $ whois -h whois.jordan.im jordan.im
-  AS8943 GB Jump Networks Ltd 185.73.44.0/22
-  AS8943 GB Jump Networks Ltd 2001:ba8::/32
+
+  AS Number | Country | AS Name           | Announcement
+  ----------+---------+-------------------+---------------
+  8943      | GB      | Jump Networks Ltd | 185.73.44.0/22
+  8943      | GB      | Jump Networks Ltd | 2001:ba8::/32
