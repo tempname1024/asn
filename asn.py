@@ -8,6 +8,7 @@ import socket
 import sys
 import sqlite3
 import threading
+from glob import glob
 
 import git
 
@@ -126,7 +127,12 @@ class DB:
         self.con = sqlite3.connect(self.db_path)
 
         loc = os.path.join(self.repo_path, 'location-database')
-        self.db_txt = os.path.join(loc, 'database.txt')
+        self.dataset = os.path.join(loc, 'database.txt')
+
+        self.overrides = []
+        for p in os.walk(os.path.join(loc, 'overrides')):
+            for f in glob(os.path.join(p[0], '*.txt')):
+                self.overrides.append(f)
 
     def populate_db(self):
         with self.con:
@@ -156,7 +162,10 @@ class DB:
             ''')
             self.con.execute('PRAGMA foreign_keys=ON')
 
-            self._get_entries()
+            for txt in self.overrides:
+                self._get_entries(txt)
+
+            self._get_entries(self.dataset)
 
     def update(self):
         if not self._submodule_pull():
@@ -180,8 +189,8 @@ class DB:
 
         return updated
 
-    def _get_entries(self):
-        with open(self.db_txt, 'r') as f:
+    def _get_entries(self, txt):
+        with open(txt, 'r') as f:
             kv = dict()
             while True:
                 try:
@@ -191,6 +200,9 @@ class DB:
 
                 if not line.strip() or line.strip().startswith('#'):
                     if kv:
+                        # key correction for overrides; uses descr
+                        if kv.get('descr'):
+                            kv['name'] = kv.pop('descr')
                         self._add(kv)
                         kv = dict()
 
@@ -198,7 +210,6 @@ class DB:
 
                 (k, v) = (x.strip() for x in line.split(':', 1))
                 kv[k] = v
-
 
     def _add(self, kv):
         # ASN information block
