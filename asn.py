@@ -36,18 +36,22 @@ class Listener:
         if not recv_data:
             conn.close()
 
-        recv_data = str(recv_data, 'utf-8').strip()
-        log.info(f'{addr[0]} {recv_data}')
-
-        announcements = self._get_announcements(recv_data)
-        if not announcements:
-            announcements = 'no valid hostname or IP discovered'
+        try:
+            recv_data = str(recv_data, 'utf-8').strip()
+        except UnicodeDecodeError:
+            resp = 'could not decode query to utf-8'
         else:
-            announcements = self._pretty(announcements)
+            log.info(f'{addr[0]} {recv_data}')
 
-        conn.sendall(bytes(announcements, 'utf-8'))
-        conn.shutdown(socket.SHUT_RDWR)
-        conn.close()
+            resp = self._get_announcements(recv_data)
+            if not resp:
+                resp = 'no valid hostname or IP discovered'
+            else:
+                resp = self._pretty(resp)
+        finally:
+            conn.sendall(bytes(resp, 'utf-8'))
+            conn.shutdown(socket.SHUT_RDWR)
+            conn.close()
 
     def _get_announcements(self, recv):
         db = DB()
