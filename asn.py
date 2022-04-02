@@ -44,10 +44,10 @@ class Listener:
             log.info(f'{addr[0]} {recv_data}')
 
             resp = self._get_announcements(recv_data)
-            if not resp:
-                resp = 'no valid hostname or IP discovered'
-            else:
+            if resp:
                 resp = self._pretty(resp)
+            else:
+                resp = ''
         finally:
             conn.sendall(bytes(resp, 'utf-8'))
             conn.shutdown(socket.SHUT_RDWR)
