@@ -32,22 +32,22 @@ class Listener:
                         args=(conn,addr,), daemon=True).start()
 
     def _handler(self, conn, addr):
-        recv_data = conn.recv(1024)
-        if not recv_data:
-            conn.close()
-
+        resp = ''
         try:
+            recv_data = conn.recv(1024)
             recv_data = str(recv_data, 'utf-8').strip()
+        except ConnectionResetError:
+            log.info(f'{addr[0]} connection reset')
         except UnicodeDecodeError:
-            resp = 'could not decode query to utf-8'
+            log.info(f'{addr[0]} could not decode to utf-8')
+        except Exception as err:
+            log.info(f'{addr[0]} {err}')
         else:
             log.info(f'{addr[0]} {recv_data}')
 
-            resp = self._get_announcements(recv_data)
-            if resp:
-                resp = self._pretty(resp)
-            else:
-                resp = ''
+            announcements = self._get_announcements(recv_data)
+            if announcements:
+                resp = self._pretty(announcements)
         finally:
             conn.sendall(bytes(resp, 'utf-8'))
             conn.shutdown(socket.SHUT_RDWR)
