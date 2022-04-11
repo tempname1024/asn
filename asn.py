@@ -18,7 +18,8 @@ log = logging.getLogger('asn')
 log.setLevel(logging.DEBUG)
 
 class Listener:
-    def __init__(self, host, port):
+    def __init__(self, db, host, port):
+        self.db = db
         self._listen(host, port)
 
     def _listen(self, host, port):
@@ -54,7 +55,6 @@ class Listener:
             conn.close()
 
     def _get_announcements(self, recv):
-        db = DB()
         hosts = set()
         try:
             ip = ipaddress.ip_address(recv)
@@ -72,7 +72,7 @@ class Listener:
 
                 n = self._get_netblock(host)
                 if n:
-                    announcements.extend(db.query(n))
+                    announcements.extend(self.db.query(n))
 
             return announcements
 
@@ -128,7 +128,7 @@ class DB:
     def __init__(self):
         self.repo_path = os.path.dirname(os.path.abspath(__file__))
         self.db_path = os.path.join(self.repo_path, 'cache.db')
-        self.con = sqlite3.connect(self.db_path)
+        self.con = sqlite3.connect(self.db_path, check_same_thread=False)
 
         loc = os.path.join(self.repo_path, 'location-database')
         self.dataset = os.path.join(loc, 'database.txt')
@@ -266,10 +266,10 @@ if __name__ == '__main__':
                         required=False)
     args = parser.parse_args()
 
+    db = DB()
     if args.host and args.port:
-        listen = Listener(args.host, args.port)
+        listen = Listener(db, args.host, args.port)
     elif args.update:
-        db = DB()
         log.info('checking remote repository for new dataset...')
         if db.update():
             log.info('dataset updated, creating/populating cache...')
@@ -277,7 +277,6 @@ if __name__ == '__main__':
         else:
             log.info('no changes since last update')
     elif args.populate:
-        db = DB()
         log.info('creating/populating cache...')
         db.populate_db()
     else:
